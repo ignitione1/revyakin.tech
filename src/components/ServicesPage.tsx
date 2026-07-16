@@ -1,13 +1,11 @@
 import { useEffect } from "react";
-import { translations, type Lang } from "@/lib/translations";
+import { type Lang } from "@/lib/translations";
 
 interface ServicesPageProps {
   lang: Lang;
 }
 
 export function ServicesPage({ lang }: ServicesPageProps) {
-  const t = translations[lang];
-
   // Свой title/description для /services (SPA — иначе наследуются с главной).
   // Восстанавливаем при уходе со страницы.
   useEffect(() => {
@@ -17,13 +15,13 @@ export function ServicesPage({ lang }: ServicesPageProps) {
 
     document.title =
       lang === "ru"
-        ? "Услуги веб-разработки и мобильных приложений — Revyakin.tech"
-        : "Web Development & Mobile App Services — Revyakin.tech";
+        ? "Разработка сайтов и приложений — Прокопьевск, Кузбасс, Россия | Revyakin.tech"
+        : "Web & Mobile App Development — Kuzbass, Russia | Revyakin.tech";
     metaDesc?.setAttribute(
       "content",
       lang === "ru"
-        ? "Разработка сайтов, лендингов, веб- и мобильных приложений под ключ. React, Next.js, Python, Flutter. От идеи до продакшена."
-        : "Website, landing page, web and mobile app development from scratch. React, Next.js, Python, Flutter. From idea to production."
+        ? "Разработка сайтов, лендингов, веб- и мобильных приложений под ключ. Прокопьевск, Киселёвск, Новокузнецк, Кемерово, вся Кемеровская область и Россия — удалённо. React, Next.js, Python, Flutter."
+        : "Website, landing page, web and mobile app development. Based in Kuzbass, Russia — working remotely nationwide. React, Next.js, Python, Flutter."
     );
 
     return () => {
@@ -32,190 +30,274 @@ export function ServicesPage({ lang }: ServicesPageProps) {
     };
   }, [lang]);
 
+  // FAQPage-разметка только на /services (иначе на главной SPA была бы разметка
+  // без видимого FAQ — это нарушение рекомендаций Google). Снимаем при уходе.
+  useEffect(() => {
+    const faq =
+      lang === "ru"
+        ? [
+            {
+              q: "Вы работаете только по Кузбассу?",
+              a: "Нет. Я в Прокопьевске, но веду проекты удалённо по всей России. Клиенту из Новосибирска или Москвы работать со мной так же удобно, как из соседнего города Кузбасса.",
+            },
+            {
+              q: "Сколько времени занимает разработка?",
+              a: "Зависит от сложности: лендинг — 2–3 дня, корпоративный сайт — 1–2 недели, интернет-магазин или веб-приложение — 2–4 недели. MVP для стартапа можно запустить за 5–15 дней.",
+            },
+            {
+              q: "Сколько это стоит?",
+              a: "Лендинг от 5000 ₽, корпоративный сайт от 50000 ₽, интернет-магазин от 70000 ₽, веб-приложение от 80000 ₽, MVP от 10000 ₽. Точную стоимость назову после обсуждения задачи.",
+            },
+            {
+              q: "Что с поддержкой после запуска?",
+              a: "Остаюсь на связи после запуска: правки, обновления, исправление багов, консультации. Формат — почасово или по договорённости.",
+            },
+          ]
+        : [
+            {
+              q: "Do you only work in the Kemerovo region?",
+              a: "No. I'm based in Prokopyevsk but run projects remotely across Russia. Working with me from Novosibirsk or Moscow is just as convenient as from a neighboring city in Kuzbass.",
+            },
+            {
+              q: "How long does development take?",
+              a: "It depends on complexity: landing page — 2–3 days, corporate site — 1–2 weeks, online store or web app — 2–4 weeks. A startup MVP can launch in 5–15 days.",
+            },
+            {
+              q: "How much does it cost?",
+              a: "Landing from 5000 ₽, corporate site from 50000 ₽, online store from 70000 ₽, web app from 80000 ₽, MVP from 10000 ₽. I'll give an exact number after discussing the task.",
+            },
+            {
+              q: "What about support after launch?",
+              a: "I stay in touch after launch: fixes, updates, bug fixing, consultations. Hourly or by agreement.",
+            },
+          ];
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.setAttribute("data-faq", "services");
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faq.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
+      })),
+    });
+    document.head.appendChild(script);
+
+    return () => {
+      script.remove();
+    };
+  }, [lang]);
+
   return (
     <div className="bg-background text-foreground px-4 py-12 md:px-8 lg:px-16 h-screen overflow-y-auto">
       <div className="max-w-4xl mx-auto pb-20">
         <h1 className="text-2xl md:text-3xl font-bold mb-6">
-          {lang === 'ru' ? 'Услуги веб-разработки и создания мобильных приложений' : 'Web Development and Mobile App Services'}
+          {lang === "ru"
+            ? "Разработка сайтов и мобильных приложений в Прокопьевске, Кузбассе и по всей России"
+            : "Website and Mobile App Development in Kuzbass and across Russia"}
         </h1>
 
         <div className="prose prose-invert max-w-none space-y-3 text-foreground/80 text-xs md:text-sm">
           <p className="leading-relaxed">
-            {lang === 'ru' 
-              ? 'Занимаюсь профессиональной разработкой сайтов, лендингов, веб-приложений и мобильных приложений под ключ. Помогаю запускать MVP для стартапов, создаю цифровые продукты с нуля: от идеи до продакшена. Работаю с бизнесом и стартапами, делаю быстрые и масштабируемые решения. Использую современные технологии: React, Next.js, Python, Node.js, Flutter. Разработка сайтов включает проработку дизайна, адаптивную верстку, интеграцию с CRM и другими сервисами. Создаю сайты, которые работают на бизнес и привлекают клиентов.'
-              : 'I specialize in professional website development, landing pages, web applications, and mobile applications. I help launch MVPs for startups, create digital products from scratch: from idea to production. I work with businesses and startups, delivering fast and scalable solutions. I use modern technologies: React, Next.js, Python, Node.js, Flutter. Website development includes design work, responsive layout, integration with CRM and other services. I create websites that work for business and attract customers.'
-            }
+            {lang === "ru"
+              ? "Меня зовут Виталий Ревякин, я full-stack разработчик из Прокопьевска. Делаю сайты, лендинги, веб- и мобильные приложения под ключ — от первого созвона до запуска и поддержки. Беру и небольшие лендинги, и MVP для стартапов, и системы посложнее. Работаю удалённо, поэтому географии почти нет: клиенты из Прокопьевска, Киселёвска, Новокузнецка, Кемерово, Новосибирска и других городов России общаются со мной так же, как местные — созвон, чат, демо."
+              : "I'm Vitaly Revyakin, a full-stack developer based in Prokopyevsk, Russia. I build websites, landing pages, web and mobile apps end-to-end — from the first call to launch and support. I take on small landing pages, startup MVPs, and more complex systems alike. I work remotely, so location doesn't matter: clients across Kuzbass, Novosibirsk and the rest of Russia work with me just like a local — calls, chat, demos."}
           </p>
 
-          <h2 className="text-lg md:text-xl font-semibold text-foreground mt-5 mb-2">
-            {lang === 'ru' ? 'Разработка сайтов под ключ' : 'Full-Stack Website Development'}
+          <h2 className="text-lg md:text-xl font-semibold text-foreground mt-6 mb-2">
+            {lang === "ru" ? "Что я делаю" : "What I do"}
           </h2>
           <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Профессионально разрабатываю сайты под ключ для бизнеса. Создаю корпоративные сайты, лендинги, интернет-магазины и веб-приложения. Разработка сайтов включает анализ требований, проектирование архитектуры, UI/UX дизайн, адаптивную верстку, бэкенд разработку, интеграцию с платежными системами, CRM, API. Использую современные технологии: React, Next.js, Vue.js, Python, Django, Node.js, NestJS. Разработка сайтов выполняется с учетом SEO-оптимизации, безопасности, производительности. Создаю сайты, которые конвертируют посетителей в клиентов.'
-              : 'I professionally develop websites for business. I create corporate websites, landing pages, e-commerce sites, and web applications. Website development includes requirements analysis, architecture design, UI/UX design, responsive layout, backend development, integration with payment systems, CRM, API. I use modern technologies: React, Next.js, Vue.js, Python, Django, Node.js, NestJS. Website development is performed with SEO optimization, security, and performance in mind. I create websites that convert visitors into customers.'
-            }
+            {lang === "ru"
+              ? "Не распыляюсь на «всё подряд» — фокус на том, что реально приносит результат бизнесу:"
+              : "I don't spread thin across everything — I focus on what actually drives business results:"}
           </p>
-
-          <h3 className="text-lg font-semibold text-foreground mt-5 mb-2">
-            {lang === 'ru' ? 'Виды сайтов, которые я разрабатываю' : 'Types of websites I develop'}
-          </h3>
-          <ul className="list-disc pl-6 space-y-1">
-            <li>{lang === 'ru' ? 'Корпоративные сайты для бизнеса' : 'Corporate websites for business'}</li>
-            <li>{lang === 'ru' ? 'Лендинги для продвижения продуктов и услуг' : 'Landing pages for product and service promotion'}</li>
-            <li>{lang === 'ru' ? 'Интернет-магазины с интеграцией платежных систем' : 'E-commerce sites with payment system integration'}</li>
-            <li>{lang === 'ru' ? 'Веб-приложения и SaaS-платформы' : 'Web applications and SaaS platforms'}</li>
-            <li>{lang === 'ru' ? 'CRM-системы и дашборды' : 'CRM systems and dashboards'}</li>
-            <li>{lang === 'ru' ? 'Порталы и каталоги' : 'Portals and catalogs'}</li>
+          <ul className="list-disc pl-6 space-y-1.5">
+            <li>
+              {lang === "ru"
+                ? "Сайты и лендинги — корпоративные сайты, продающие лендинги, интернет-магазины. Быстрые, адаптивные, с прицелом на конверсию и SEO."
+                : "Websites and landing pages — corporate sites, high-converting landings, online stores. Fast, responsive, built for conversion and SEO."}
+            </li>
+            <li>
+              {lang === "ru"
+                ? "Веб-приложения — CRM, дашборды, SaaS, личные кабинеты. С авторизацией, базами данных, интеграциями и real-time."
+                : "Web applications — CRMs, dashboards, SaaS, user portals. With auth, databases, integrations and real-time."}
+            </li>
+            <li>
+              {lang === "ru"
+                ? "Мобильные приложения — iOS и Android на Flutter из одного кода: push, геолокация, камера, оффлайн-режим."
+                : "Mobile apps — iOS and Android from one Flutter codebase: push, geolocation, camera, offline mode."}
+            </li>
+            <li>
+              {lang === "ru"
+                ? "MVP для стартапов — запуск рабочей версии продукта за 1–2 недели, чтобы проверить гипотезу без больших вложений."
+                : "MVP for startups — a working product in 1–2 weeks to test the hypothesis without heavy investment."}
+            </li>
+            <li>
+              {lang === "ru"
+                ? "Telegram-боты и автоматизация — уведомления, приём заявок, интеграция с сайтом и CRM."
+                : "Telegram bots and automation — notifications, lead intake, integration with your site and CRM."}
+            </li>
           </ul>
 
-          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {lang === 'ru' ? 'Создание лендингов с высокой конверсией' : 'High-Converting Landing Page Development'}
+          <h2 className="text-lg md:text-xl font-semibold text-foreground mt-6 mb-2">
+            {lang === "ru" ? "Примеры моих проектов" : "Examples of my work"}
           </h2>
           <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Разрабатываю эффективные лендинги для продвижения продуктов и услуг. Создаю продающие страницы с высокой конверсией. Лендинг включает уникальный дизайн, адаптивную верстку, интеграцию с формами сбора заявок, аналитикой и маркетинговыми инструментами. Создаю лендинги, которые превращают посетителей в клиентов. Использую A/B тестирование, оптимизирую скорость загрузки, настраиваю интеграцию с рекламными кампаниями. Лендинг разрабатывается с учетом целевой аудитории и бизнес-целей.'
-              : 'I develop effective landing pages for promoting products and services. I create selling pages with high conversion. Landing page includes unique design, responsive layout, integration with lead forms, analytics and marketing tools. I create landing pages that turn visitors into customers. I use A/B testing, optimize loading speed, set up integration with advertising campaigns. Landing page is developed with target audience and business goals in mind.'
-            }
+            {lang === "ru"
+              ? "Коротко о том, что уже сделано и работает — не абстрактные обещания, а живые продукты:"
+              : "A quick look at what's already built and running — not abstract promises, but live products:"}
           </p>
-
-          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {lang === 'ru' ? 'Веб-приложения любой сложности' : 'Web Applications of Any Complexity'}
-          </h2>
-          <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Разрабатываю веб-приложения любой сложности. Создаю SaaS-платформы, CRM-системы, дашборды и другие веб-приложения. Веб-приложения разрабатываю с учетом требований к безопасности, масштабируемости и производительности. Использую современные фреймворки и архитектурные паттерны для создания надежных веб-приложений. Веб-приложения включают авторизацию, работу с базами данных, API интеграцию, real-time обновления, уведомления. Разрабатываю как monolith, так и microservices архитектуры.'
-              : 'I develop web applications of any complexity. I create SaaS platforms, CRM systems, dashboards and other web applications. Web applications are developed with security, scalability and performance requirements in mind. I use modern frameworks and architectural patterns to create reliable web applications. Web applications include authentication, database work, API integration, real-time updates, notifications. I develop both monolith and microservices architectures.'
-            }
-          </p>
-
-          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {lang === 'ru' ? 'Разработка MVP для стартапов' : 'MVP Development for Startups'}
-          </h2>
-          <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Быстро разрабатываю MVP для стартапов. Помогаю запускать продукт за 1-2 недели. Разработка MVP включает проработку идеи, создание прототипа, разработку базовой функциональности и запуск на рынок. MVP позволяет быстро протестировать гипотезы и получить обратную связь от пользователей с минимальными инвестициями. Разработка MVP выполняется с использованием современных технологий и best practices. Помогаю с приоритизацией функций, выбираю оптимальный стек технологий, настраиваю инфраструктуру.'
-              : 'I quickly develop MVP for startups. I help launch a product in 1-2 weeks. MVP development includes idea work, prototyping, basic functionality development and market launch. MVP allows you to quickly test hypotheses and get user feedback with minimal investment. MVP development is performed using modern technologies and best practices. I help with feature prioritization, choose optimal technology stack, set up infrastructure.'
-            }
-          </p>
-
-          <h3 className="text-lg font-semibold text-foreground mt-5 mb-2">
-            {lang === 'ru' ? 'Этапы разработки MVP' : 'MVP Development Stages'}
-          </h3>
-          <ol className="list-decimal pl-6 space-y-1">
-            <li>{lang === 'ru' ? 'Анализ идеи и требований' : 'Idea and requirements analysis'}</li>
-            <li>{lang === 'ru' ? 'Проработка пользовательских сценариев' : 'User scenarios work'}</li>
-            <li>{lang === 'ru' ? 'Создание прототипа и дизайна' : 'Prototype and design creation'}</li>
-            <li>{lang === 'ru' ? 'Разработка базовой функциональности' : 'Basic functionality development'}</li>
-            <li>{lang === 'ru' ? 'Тестирование и запуск' : 'Testing and launch'}</li>
-            <li>{lang === 'ru' ? 'Сбор обратной связи и итерации' : 'Feedback collection and iterations'}</li>
-          </ol>
-
-          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {lang === 'ru' ? 'Разработка мобильных приложений iOS и Android' : 'iOS and Android Mobile App Development'}
-          </h2>
-          <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Создание мобильных приложений для iOS и Android. Разрабатываю нативные и кроссплатформенные приложения с использованием Flutter. Мобильные приложения включают современный дизайн, интеграцию с API, push-уведомления, работу с камерой, геолокацией, сохранение данных локально. Создаю мобильные приложения, которые работают стабильно и выглядят профессионально. Использую Flutter для кроссплатформенной разработки, что позволяет сэкономить время и бюджет. Мобильные приложения проходят тестирование на различных устройствах.'
-              : 'Creating mobile applications for iOS and Android. I develop native and cross-platform applications using Flutter. Mobile applications include modern design, API integration, push notifications, camera work, geolocation, local data storage. I create mobile applications that work stably and look professional. I use Flutter for cross-platform development, which saves time and budget. Mobile applications are tested on various devices.'
-            }
-          </p>
-
-          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {lang === 'ru' ? 'Технологии, которые я использую' : 'Technologies I Use'}
-          </h2>
-          <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'В работе использую современные технологии и инструменты. Frontend: React, Next.js, Vue.js, TypeScript, Tailwind CSS. Backend: Python, Django, FastAPI, Node.js, NestJS, Express. Mobile: Flutter, Dart. Базы данных: PostgreSQL, MongoDB, Redis, SQLite. Инфраструктура: Docker, Docker Compose, Nginx, CI/CD, Git. Постоянно изучаю новые технологии и применяю лучшие практики в разработке. Выбираю оптимальный стек технологий под каждый проект.'
-              : 'I use modern technologies and tools in my work. Frontend: React, Next.js, Vue.js, TypeScript, Tailwind CSS. Backend: Python, Django, FastAPI, Node.js, NestJS, Express. Mobile: Flutter, Dart. Databases: PostgreSQL, MongoDB, Redis, SQLite. Infrastructure: Docker, Docker Compose, Nginx, CI/CD, Git. I constantly study new technologies and apply best practices in development. I choose optimal technology stack for each project.'
-            }
-          </p>
-
-          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {lang === 'ru' ? 'Процесс работы над проектом' : 'Project Work Process'}
-          </h2>
-          <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Работаю по прозрачному процессу: анализ требований, проектирование, разработка, тестирование, запуск и поддержка. На каждом этапе поддерживаю коммуникацию с клиентом, предоставляю отчеты о прогрессе. Гарантирую качество кода и соблюдение сроков. Разработка ведется с учетом требований к безопасности и производительности. Использую agile методологию, регулярные демо, инкрементальную доставку функционала. Предоставляю доступ к репозиторию, систему таск-трекинга.'
-              : 'I work on a transparent process: requirements analysis, design, development, testing, launch and support. At each stage I maintain communication with the client, provide progress reports. I guarantee code quality and deadline compliance. Development is carried out with security and performance requirements in mind. I use agile methodology, regular demos, incremental feature delivery. I provide repository access, task tracking system.'
-            }
-          </p>
-
-          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {lang === 'ru' ? 'Почему выбирают меня' : 'Why Choose Me'}
-          </h2>
-          <ul className="list-disc pl-6 space-y-1">
-            <li>{lang === 'ru' ? 'Быстрая разработка с использованием AI-инструментов' : 'Fast development using AI tools'}</li>
-            <li>{lang === 'ru' ? 'Опыт работы с различными проектами и отраслями' : 'Experience working with various projects and industries'}</li>
-            <li>{lang === 'ru' ? 'Индивидуальный подход к каждому клиенту' : 'Individual approach to each client'}</li>
-            <li>{lang === 'ru' ? 'Прозрачное ценообразование без скрытых платежей' : 'Transparent pricing without hidden payments'}</li>
-            <li>{lang === 'ru' ? 'Поддержка после запуска проекта' : 'Support after project launch'}</li>
-            <li>{lang === 'ru' ? 'Современные технологии и best practices' : 'Modern technologies and best practices'}</li>
-            <li>{lang === 'ru' ? 'Гарантия качества кода' : 'Code quality guarantee'}</li>
+          <ul className="list-disc pl-6 space-y-1.5">
+            <li>
+              {lang === "ru" ? (
+                <>
+                  <strong>WorkHub</strong> — маркетплейс услуг (workhub.su): каталог
+                  исполнителей, заявки, личные кабинеты. Полноценная платформа, а не
+                  просто сайт.
+                </>
+              ) : (
+                <>
+                  <strong>WorkHub</strong> — a services marketplace (workhub.su):
+                  provider catalog, orders, user accounts. A full platform, not just a
+                  site.
+                </>
+              )}
+            </li>
+            <li>
+              {lang === "ru" ? (
+                <>
+                  <strong>TaskFlow</strong> — система управления задачами с веб-интерфейсом
+                  и Telegram-ботом и real-time синхронизацией. Сократила время на управление
+                  задачами примерно на 40%.
+                </>
+              ) : (
+                <>
+                  <strong>TaskFlow</strong> — a task manager with a web interface and a
+                  Telegram bot with real-time sync. Cut task-management time by roughly
+                  40%.
+                </>
+              )}
+            </li>
+            <li>
+              {lang === "ru" ? (
+                <>
+                  <strong>GreenG</strong> — маркетплейс садовых услуг: поиск исполнителей,
+                  заявки, удобный каталог.
+                </>
+              ) : (
+                <>
+                  <strong>GreenG</strong> — a garden-services marketplace: finding
+                  providers, orders, a convenient catalog.
+                </>
+              )}
+            </li>
           </ul>
-
-          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {lang === 'ru' ? 'Часто задаваемые вопросы' : 'Frequently Asked Questions'}
-          </h2>
-          
-          <h3 className="text-lg font-semibold text-foreground mt-4 mb-2">
-            {lang === 'ru' ? 'Сколько времени занимает разработка сайта?' : 'How long does website development take?'}
-          </h3>
           <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Время разработки зависит от сложности проекта. Лендинг - 2-3 дня, корпоративный сайт - 1-2 недели, интернет-магазин - 2-4 недели, веб-приложение - 2-4 недели. MVP для стартапа можно запустить за 5-15 дней.'
-              : 'Development time depends on project complexity. Landing page - 2-3 days, corporate website - 1-2 weeks, e-commerce - 2-4 weeks, web application - 2-4 weeks. Startup MVP can be launched in 5-15 days.'
-            }
+            {lang === "ru"
+              ? "Больше работ с описанием и ссылками — в разделе «Работы» на главной странице."
+              : "More projects with descriptions and links are in the “Work” section on the home page."}
           </p>
 
-          <h3 className="text-lg font-semibold text-foreground mt-4 mb-2">
-            {lang === 'ru' ? 'Сколько стоит разработка?' : 'How much does development cost?'}
-          </h3>
-          <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Стоимость зависит от требований проекта. Лендинг от 5 000 руб, корпоративный сайт от 50 000 руб, интернет-магазин от 70 000 руб, веб-приложение от 80 000 руб. MVP для стартапа от 10 000 руб. Точную стоимость могу оценить после обсуждения требований.'
-              : 'Cost depends on project requirements. Landing page from 5 000 rub, corporate website from 50 000 rub, e-commerce from 70 000 rub, web application from 80 000 rub. Startup MVP from 10 000 rub. Exact cost can be estimated after discussing requirements.'
-            }
-          </p>
-
-          <h3 className="text-lg font-semibold text-foreground mt-4 mb-2">
-            {lang === 'ru' ? 'Какие технологии вы используете?' : 'What technologies do you use?'}
-          </h3>
-          <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Использую современные технологии: React, Next.js, Vue.js для frontend, Python, Django, Node.js, NestJS для backend, Flutter для мобильных приложений, PostgreSQL, MongoDB для баз данных, Docker, Nginx для инфраструктуры.'
-              : 'I use modern technologies: React, Next.js, Vue.js for frontend, Python, Django, Node.js, NestJS for backend, Flutter for mobile applications, PostgreSQL, MongoDB for databases, Docker, Nginx for infrastructure.'
-            }
-          </p>
-
-          <h3 className="text-lg font-semibold text-foreground mt-4 mb-2">
-            {lang === 'ru' ? 'Предоставляете ли поддержку после запуска?' : 'Do you provide support after launch?'}
-          </h3>
-          <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Да, предоставляю техническую поддержку после запуска проекта. Включает исправление багов, обновления, мониторинг, консультации. Поддержка может быть почасовой или по контракту.'
-              : 'Yes, I provide technical support after project launch. Includes bug fixes, updates, monitoring, consultations. Support can be hourly or contract-based.'
-            }
-          </p>
-
-          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {lang === 'ru' ? 'География работы' : 'Work Geography'}
+          <h2 className="text-lg md:text-xl font-semibold text-foreground mt-6 mb-2">
+            {lang === "ru"
+              ? "Разработка сайтов в Прокопьевске и Кемеровской области"
+              : "Web development in Kuzbass and remotely across Russia"}
           </h2>
           <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Работаю удаленно с клиентами из любой точки мира. Основной фокус на России: Прокопьевск, Кемерово, Кузбасс, Кемеровская область. Также работаю с клиентами из других регионов и стран. Коммуникация через Telegram, email, видеозвонки.'
-              : 'I work remotely with clients from anywhere in the world. Main focus on Russia: Prokopyevsk, Kemerovo, Kuzbass, Kemerovo region. Also work with clients from other regions and countries. Communication via Telegram, email, video calls.'
-            }
+            {lang === "ru"
+              ? "Я живу и работаю в Прокопьевске, поэтому клиентам из Кузбасса удобно: один часовой пояс, при желании можно встретиться очно, обсудить проект без формальностей. Помогаю бизнесу и частным заказчикам из Прокопьевска, Киселёвска, Новокузнецка, Кемерово и других городов Кемеровской области сделать сайт или приложение под задачу."
+              : "I live and work in Prokopyevsk, so clients across the Kemerovo region get the same time zone and the option to meet in person and discuss the project informally. I help businesses and individuals in Prokopyevsk, Kiselyovsk, Novokuznetsk, Kemerovo and other cities of the region build a site or app that fits the task."}
+          </p>
+          <p className="leading-relaxed">
+            {lang === "ru"
+              ? "При этом всё, что нужно для работы, делается удалённо, поэтому я так же спокойно веду проекты для клиентов из Новосибирска, Москвы, Санкт-Петербурга и любого другого региона России. Формат общения выбираем удобный вам: Telegram, почта, звонки, видеовстречи."
+              : "Everything needed for the work happens remotely, so I run projects for clients in Novosibirsk, Moscow, St. Petersburg and any other Russian region just as smoothly. We pick whatever communication format suits you: Telegram, email, calls, video meetings."}
           </p>
 
-          <h2 className="text-xl font-semibold text-foreground mt-6 mb-3">
-            {lang === 'ru' ? 'Связаться со мной' : 'Contact Me'}
+          <h2 className="text-lg md:text-xl font-semibold text-foreground mt-6 mb-2">
+            {lang === "ru" ? "Технологии" : "Technologies"}
           </h2>
           <p className="leading-relaxed">
-            {lang === 'ru'
-              ? 'Готов обсудить ваш проект? Свяжитесь со мной через форму на главной странице или напишите на ignitione1@mail.ru. Также можете написать в Telegram: @vitaly_revyakin. Отвечу в течение 24 часов.'
-              : 'Ready to discuss your project? Contact me via the form on the main page or write to ignitione1@mail.ru. You can also write to Telegram: @vitaly_revyakin. I will respond within 24 hours.'
-            }
+            {lang === "ru"
+              ? "Frontend: React, Next.js, TypeScript, Tailwind CSS. Backend: Python (Django, FastAPI), Node.js. Мобильные: Flutter. Базы данных: PostgreSQL, Redis, SQLite. Под каждый проект подбираю стек, который решает задачу, а не тот, что «модный». Если проще и надёжнее сделать без тяжёлых фреймворков — сделаю так."
+              : "Frontend: React, Next.js, TypeScript, Tailwind CSS. Backend: Python (Django, FastAPI), Node.js. Mobile: Flutter. Databases: PostgreSQL, Redis, SQLite. For each project I pick the stack that solves the task, not the trendy one. If it's simpler and more reliable without heavy frameworks — that's what I'll do."}
+          </p>
+
+          <h2 className="text-lg md:text-xl font-semibold text-foreground mt-6 mb-2">
+            {lang === "ru" ? "Как я работаю" : "How I work"}
+          </h2>
+          <p className="leading-relaxed">
+            {lang === "ru"
+              ? "Сначала разбираемся, какую задачу решаем и зачем, — иногда на этом этапе становится ясно, что нужно совсем не то, что казалось вначале. Дальше: прототип, разработка небольшими итерациями с регулярными демо, тестирование, запуск. Вы видите прогресс по ходу, а не «пропадаю на месяц и приношу готовое». После запуска остаюсь на связи — правки, доработки, поддержка."
+              : "First we figure out what problem we're solving and why — sometimes that alone reveals the real need is different from the initial idea. Then: a prototype, development in small iterations with regular demos, testing, launch. You see progress along the way instead of me disappearing for a month. After launch I stay in touch — fixes, improvements, support."}
+          </p>
+
+          <h2 className="text-lg md:text-xl font-semibold text-foreground mt-6 mb-2">
+            {lang === "ru" ? "Стоимость и сроки" : "Pricing and timelines"}
+          </h2>
+          <p className="leading-relaxed">
+            {lang === "ru"
+              ? "Ориентиры по срокам: лендинг — 2–3 дня, корпоративный сайт — 1–2 недели, интернет-магазин или веб-приложение — 2–4 недели, MVP — 5–15 дней. По деньгам: лендинг от 5 000 ₽, корпоративный сайт от 50 000 ₽, интернет-магазин от 70 000 ₽, веб-приложение от 80 000 ₽, MVP от 10 000 ₽. Точную цену назову после короткого обсуждения — она зависит от объёма, а не от «прайса с потолка»."
+              : "Timeline guide: landing page — 2–3 days, corporate site — 1–2 weeks, online store or web app — 2–4 weeks, MVP — 5–15 days. Pricing: landing from 5,000 ₽, corporate site from 50,000 ₽, online store from 70,000 ₽, web app from 80,000 ₽, MVP from 10,000 ₽. I'll give an exact number after a short discussion — it depends on scope, not a made-up price list."}
+          </p>
+
+          <h2 className="text-lg md:text-xl font-semibold text-foreground mt-6 mb-3">
+            {lang === "ru" ? "Частые вопросы" : "Frequently Asked Questions"}
+          </h2>
+
+          <h3 className="text-base md:text-lg font-semibold text-foreground mt-4 mb-2">
+            {lang === "ru"
+              ? "Вы работаете только по Кузбассу?"
+              : "Do you only work in the Kemerovo region?"}
+          </h3>
+          <p className="leading-relaxed">
+            {lang === "ru"
+              ? "Нет. Я в Прокопьевске, но веду проекты удалённо по всей России. Клиенту из Новосибирска или Москвы работать со мной так же удобно, как из соседнего города Кузбасса."
+              : "No. I'm based in Prokopyevsk but run projects remotely across Russia. Working with me from Novosibirsk or Moscow is just as convenient as from a neighboring city in Kuzbass."}
+          </p>
+
+          <h3 className="text-base md:text-lg font-semibold text-foreground mt-4 mb-2">
+            {lang === "ru"
+              ? "Сколько времени занимает разработка?"
+              : "How long does development take?"}
+          </h3>
+          <p className="leading-relaxed">
+            {lang === "ru"
+              ? "Зависит от сложности: лендинг — 2–3 дня, корпоративный сайт — 1–2 недели, интернет-магазин или веб-приложение — 2–4 недели. MVP для стартапа можно запустить за 5–15 дней."
+              : "It depends on complexity: landing page — 2–3 days, corporate site — 1–2 weeks, online store or web app — 2–4 weeks. A startup MVP can launch in 5–15 days."}
+          </p>
+
+          <h3 className="text-base md:text-lg font-semibold text-foreground mt-4 mb-2">
+            {lang === "ru" ? "Сколько это стоит?" : "How much does it cost?"}
+          </h3>
+          <p className="leading-relaxed">
+            {lang === "ru"
+              ? "Лендинг от 5 000 ₽, корпоративный сайт от 50 000 ₽, интернет-магазин от 70 000 ₽, веб-приложение от 80 000 ₽, MVP от 10 000 ₽. Точную стоимость назову после обсуждения задачи."
+              : "Landing from 5,000 ₽, corporate site from 50,000 ₽, online store from 70,000 ₽, web app from 80,000 ₽, MVP from 10,000 ₽. I'll give an exact number after discussing the task."}
+          </p>
+
+          <h3 className="text-base md:text-lg font-semibold text-foreground mt-4 mb-2">
+            {lang === "ru"
+              ? "Что с поддержкой после запуска?"
+              : "What about support after launch?"}
+          </h3>
+          <p className="leading-relaxed">
+            {lang === "ru"
+              ? "Остаюсь на связи после запуска: правки, обновления, исправление багов, консультации. Формат — почасово или по договорённости."
+              : "I stay in touch after launch: fixes, updates, bug fixing, consultations. Hourly or by agreement."}
+          </p>
+
+          <h2 className="text-lg md:text-xl font-semibold text-foreground mt-6 mb-2">
+            {lang === "ru" ? "Связаться со мной" : "Get in touch"}
+          </h2>
+          <p className="leading-relaxed">
+            {lang === "ru"
+              ? "Расскажите о задаче — отвечу в течение суток. Форма связи на главной странице, почта ignitione1@mail.ru или Telegram @vitaly_revyakin. Обсудим идею, сроки и стоимость без обязательств."
+              : "Tell me about your task — I'll reply within a day. Contact form on the home page, email ignitione1@mail.ru or Telegram @vitaly_revyakin. We'll discuss the idea, timeline and cost with no commitment."}
           </p>
         </div>
       </div>

@@ -9,3 +9,8 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+// Yandex.Metrika (подключается сниппетом в index.html).
+interface Window {
+  ym?: (counterId: number, event: string, ...args: unknown[]) => void
+}

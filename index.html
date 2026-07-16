@@ -33,7 +33,7 @@
     
     <!-- Geo/Location for local SEO -->
     <meta name="geo.region" content="RU-KEM" />
-    <meta name="geo.placename" content="Прокопьевск, Кемерово, Кузбасс" />
+    <meta name="geo.placename" content="Прокопьевск, Киселёвск, Новокузнецк, Кемерово, Кузбасс" />
     <meta name="geo.position" content="53.7833;86.7167" />
     <meta name="ICBM" content="53.7833, 86.7167" />
     
@@ -85,6 +85,88 @@
       }
     }
     </script>
+
+    <!-- Schema.org JSON-LD ProfessionalService (local SEO) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "name": "Revyakin.tech — Виталий Ревякин",
+      "description": "Разработка сайтов, лендингов, веб- и мобильных приложений под ключ. Прокопьевск, Кемеровская область и вся Россия — удалённо.",
+      "url": "https://revyakin.tech/",
+      "image": "https://revyakin.tech/images/logo.png",
+      "priceRange": "от 5000 ₽",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Прокопьевск",
+        "addressRegion": "Кемеровская область",
+        "addressCountry": "RU"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 53.7833,
+        "longitude": 86.7167
+      },
+      "areaServed": [
+        { "@type": "City", "name": "Прокопьевск" },
+        { "@type": "City", "name": "Киселёвск" },
+        { "@type": "City", "name": "Новокузнецк" },
+        { "@type": "City", "name": "Кемерово" },
+        { "@type": "City", "name": "Новосибирск" },
+        { "@type": "AdministrativeArea", "name": "Кемеровская область — Кузбасс" },
+        { "@type": "Country", "name": "Россия" }
+      ],
+      "knowsLanguage": ["ru", "en"]
+    }
+    </script>
+
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript">
+      (function (m, e, t, r, i, k, a) {
+        m[i] =
+          m[i] ||
+          function () {
+            (m[i].a = m[i].a || []).push(arguments);
+          };
+        m[i].l = 1 * new Date();
+        for (var j = 0; j < document.scripts.length; j++) {
+          if (document.scripts[j].src === r) {
+            return;
+          }
+        }
+        (k = e.createElement(t)),
+          (a = e.getElementsByTagName(t)[0]),
+          (k.async = 1),
+          (k.src = r),
+          a.parentNode.insertBefore(k, a);
+      })(
+        window,
+        document,
+        "script",
+        "https://mc.yandex.ru/metrika/tag.js?id=110783840",
+        "ym"
+      );
+
+      ym(110783840, "init", {
+        ssr: true,
+        webvisor: true,
+        clickmap: true,
+        ecommerce: "dataLayer",
+        referrer: document.referrer,
+        url: location.href,
+        accurateTrackBounce: true,
+        trackLinks: true,
+      });
+    </script>
+    <noscript
+      ><div>
+        <img
+          src="https://mc.yandex.ru/watch/110783840"
+          style="position: absolute; left: -9999px"
+          alt=""
+        /></div
+    ></noscript>
+    <!-- /Yandex.Metrika counter -->
   </head>
   <body>
     <div id="root"></div>
