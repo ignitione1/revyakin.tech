@@ -1,114 +1,119 @@
 # Revyakin.tech — Портфолио Full-Stack Разработчика
 
-Современный портфолио-сайт с интерактивными визуальными эффектами и мультиязычной поддержкой.
+Портфолио-сайт с горизонтальной прокруткой секций, WebGL-фоном, интерактивными эффектами
+и поддержкой русского и английского языков.
+
+**Сайт:** [revyakin.tech](https://revyakin.tech)
 
 ## 🚀 Технологии
 
 ### Frontend
-- **React 19** — библиотека для построения пользовательских интерфейсов
-- **TypeScript** — типизация JavaScript
-- **Vite** — сборщик и dev-сервер
-- **React Router DOM** — клиентская маршрутизация
-- **Tailwind CSS v4** — утилитарный CSS-фреймворк
+- **React 19** + **TypeScript**
+- **Vite 7** — сборщик и dev-сервер
+- **React Router 7** — клиентская маршрутизация
+- **Tailwind CSS v4** — стили
 - **Lucide React** — иконки
-- **Shaders** — WebGL шейдеры для визуальных эффектов
+- **Shaders** — WebGL-шейдеры для фона (загружаются отдельным чанком)
 
-### Инструменты разработки
-- **ESLint** — линтинг кода
-- **Prettier** — форматирование кода
-- **TypeScript ESLint** — линтинг TypeScript
+### Инструменты
+- **ESLint** + **TypeScript ESLint** — линтинг
+- **Prettier** — форматирование
 
-### Деплой
+### Деплой и интеграции
 - **GitHub Actions** — сборка и деплой на VPS по кнопке (`workflow_dispatch`)
-- **Nginx** — раздача статики на VPS (без Docker)
-- **Let's Encrypt** — SSL-сертификаты
+- **Nginx** + **Let's Encrypt** — раздача статики на VPS (без Docker)
+- **Vercel** — serverless-релей контактной формы в Telegram (токен бота не попадает в браузер)
 
-### Интеграции
-- **Telegram Bot API** — заявки из контактной формы через serverless-релей на Vercel (токен скрыт в env, в браузер не попадает)
+## 🌐 Особенности
+
+- **Горизонтальная прокрутка** секций с доводкой (CSS scroll-snap) и плавной анимацией переходов
+- **Мультиязычность** — русский и английский, выбор сохраняется в браузере
+- **Пререндер страниц** — `/` и `/services` при сборке превращаются в готовый HTML с текстом и мета-тегами,
+  поэтому поисковики (в том числе Яндекс) видят содержимое без выполнения JavaScript
+- **SEO** — мета-теги, Open Graph, Schema.org (`Person`, `Organization`, `ProfessionalService`, `FAQPage`),
+  sitemap, локальное SEO для Кемеровской области
+- **Производительность** — тяжёлый WebGL-фон грузится лениво, уважается системная настройка
+  «Уменьшить движение», оптимизированные изображения
+- **Интерактив** — кастомный курсор (только при мыши), магнитные кнопки, анимации появления
+- **Адаптивный дизайн** — секции подстраиваются под видимую высоту экрана на мобильных (`dvh`)
+- **Контактная форма** — заявки приходят в Telegram через serverless-функцию
 
 ## 📁 Структура проекта
 
 ```
-portfolio/
 ├── src/
-│   ├── components/          # React-компоненты
+│   ├── components/
+│   │   ├── StudioLanding.tsx       # Главная: скролл-контейнер, навигация, Hero
+│   │   ├── ServicesPage.tsx        # Страница /services (SEO-текст, FAQ)
+│   │   ├── sections/               # Секции главной: работы, услуги, обо мне, контакты
+│   │   ├── shader-background.tsx   # WebGL-фон (ленивая загрузка)
+│   │   ├── reveal.tsx              # Анимация появления элементов
 │   │   ├── CustomCursor.tsx        # Кастомный курсор
-│   │   ├── ServicesPage.tsx        # Страница услуг
-│   │   ├── StudioLanding.tsx       # Главная лендинг-страница
-│   │   ├── grain-overlay.tsx       # Эффект зернистости
 │   │   ├── magnetic-button.tsx     # Магнитная кнопка
-│   │   └── sections/               # Секции лендинга
-│   ├── lib/                # Утилиты и хелперы
-│   │   └── translations.ts  # Переводы (RU/EN)
-│   ├── App.tsx             # Главный компонент с роутингом
-│   ├── main.tsx            # Точка входа
-│   ├── styles.css          # Глобальные стили
-│   └── index.css           # Tailwind стили
-├── public/                 # Статические файлы
-├── dist/                   # Сборка (генерируется)
-├── index.html              # HTML-шаблон с SEO мета-тегами
-├── vite.config.ts          # Конфигурация Vite
-├── tsconfig.json           # Конфигурация TypeScript
-├── vps-nginx.conf          # Nginx конфиг для VPS (раздача dist/ + SSL)
-└── .github/workflows/
-    └── deploy.yml          # Сборка + деплой на VPS по кнопке
+│   │   └── grain-overlay.tsx       # Эффект плёночного зерна
+│   ├── lib/
+│   │   ├── translations.ts         # Тексты RU/EN, в том числе проекты портфолио
+│   │   └── seo.ts                  # Мета-теги страниц и FAQ (для браузера и пререндера)
+│   ├── assets/                     # Ассеты, проходящие через сборку
+│   ├── entry-server.tsx            # Рендер маршрута в HTML для пререндера
+│   ├── App.tsx                     # Роутинг, язык, учёт переходов в Метрике
+│   ├── main.tsx                    # Точка входа
+│   └── styles.css                  # Глобальные стили и тема Tailwind
+├── scripts/
+│   └── prerender.mjs               # Пререндер / и /services в dist/
+├── public/                         # robots.txt, sitemap.xml, изображения, верификации поисковиков
+├── index.html                      # HTML-шаблон с мета-тегами и Schema.org
+├── vps-nginx.conf                  # Конфиг Nginx для VPS
+└── .github/workflows/deploy.yml    # Сборка + деплой на VPS по кнопке
 ```
 
 ## 🛠️ Установка и запуск
 
 ### Требования
 - Node.js 20.19+ (требование Vite 7)
-- npm или yarn
+- npm
 
 ### Локальная разработка
 
-1. **Клонирование репозитория**
 ```bash
 git clone https://github.com/ignitione1/revyakin.tech.git
 cd revyakin.tech
-```
-
-2. **Установка зависимостей**
-```bash
 npm install
+npm run dev          # http://localhost:5173
 ```
 
-3. **Запуск dev-сервера**
-```bash
-npm run dev
-```
-Сайт будет доступен по адресу `http://localhost:5173`
+### Команды
 
-4. **Сборка для продакшена**
-```bash
-npm run build
+| Команда | Что делает |
+|---------|------------|
+| `npm run dev` | dev-сервер |
+| `npm run build` | прод-сборка в `dist/` + пререндер страниц |
+| `npm run preview` | предпросмотр собранного `dist/` |
+| `npx tsc --noEmit` | проверка типов |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier |
+
+### Как устроена сборка
+
 ```
+vite build                                  → клиентская сборка в dist/
+vite build --ssr src/entry-server.tsx       → серверная сборка для рендера в dist-ssr/
+node scripts/prerender.mjs                  → dist/index.html и dist/services.html с готовым HTML,
+                                              dist-ssr/ удаляется
+```
+
+Код, который выполняется во время рендера компонента (не в `useEffect`), не должен обращаться к
+`window` и `localStorage` без проверки `typeof window !== "undefined"` — иначе пререндер упадёт.
 
 ## 🚢 Деплой
 
-Деплой на VPS через **GitHub Actions** — вручную, кнопкой (без Docker).
-
-### Как это работает
+Деплой на VPS через **GitHub Actions** — вручную, кнопкой.
 
 ```
-git push → (вручную) Actions → Deploy to VPS → «Run workflow»
-         → сборка dist/ на раннере GitHub
+git push → Actions → Deploy to VPS → «Run workflow»
+         → сборка dist/ на раннере GitHub (включая пререндер)
          → rsync dist/ на VPS (--delete, чистая перезаливка)
-         → Nginx раздаёт /var/www/revyakin
-```
-
-### Первоначальная настройка VPS (один раз)
-
-```bash
-sudo apt update && sudo apt install -y nginx
-sudo mkdir -p /var/www/revyakin
-# SSL (если ещё нет):
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d revyakin.tech -d www.revyakin.tech
-# Конфиг Nginx:
-sudo cp vps-nginx.conf /etc/nginx/sites-available/revyakin.tech
-sudo ln -s /etc/nginx/sites-available/revyakin.tech /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
+         → Nginx раздаёт статику
 ```
 
 ### Секреты GitHub (Settings → Secrets and variables → Actions)
@@ -120,41 +125,58 @@ sudo nginx -t && sudo systemctl reload nginx
 | `VPS_SSH_KEY` | приватный SSH-ключ для деплоя |
 | `VPS_PATH` | путь раздачи, напр. `/var/www/revyakin` |
 
-### Запуск деплоя
+### Первоначальная настройка VPS (один раз)
 
-GitHub → вкладка **Actions** → workflow **Deploy to VPS** → **Run workflow**.
+```bash
+sudo apt update && sudo apt install -y nginx rsync
+sudo mkdir -p /var/www/revyakin
+# SSL:
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d revyakin.tech -d www.revyakin.tech
+# Конфиг Nginx:
+sudo cp vps-nginx.conf /etc/nginx/sites-available/revyakin.tech
+sudo ln -s /etc/nginx/sites-available/revyakin.tech /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
 
-## 🌐 Особенности
+Конфиг содержит отдельный server-блок для редиректа `www` → без `www`. Если `nginx -t` сообщает
+`could not build server_names_hash`, раскомментируйте в `/etc/nginx/nginx.conf`:
 
-- **Мультиязычность** — поддержка русского и английского языков
-- **SEO оптимизация** — мета-теги, Open Graph, Schema.org
-- **Интерактивные эффекты** — кастомный курсор, магнитные кнопки, шейдеры
-- **Адаптивный дизайн** — корректное отображение на всех устройствах
-- **Локальное SEO** — гео-метатеги для региона Кемеровская область
-- **Telegram Bot интеграция** — форма заявок отправляет сообщения напрямую в Telegram
+```nginx
+server_names_hash_bucket_size 64;
+```
+
+### Что делает конфиг Nginx
+
+- редиректит `http://` и `www` на `https://revyakin.tech` (301);
+- отдаёт пререндеренные страницы: `/services` → `services.html`, остальные маршруты → `index.html`;
+- HTML — без кеша, `/assets/` (файлы с хешем) — кеш на год, изображения из `public/` — на 7 дней;
+- добавляет заголовки безопасности (`X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, HSTS).
+
+> ⚠️ Деплой через Actions обновляет только содержимое сайта. Изменения в `vps-nginx.conf`
+> нужно применять на сервере вручную (команды — в шапке файла).
 
 ## 📝 Переменные окружения
 
 Фронтенд знает только **адрес эндпоинта** контактной формы — это не секрет.
-Создайте `.env` на основе `.env.example`:
+Для локальной разработки создайте `.env` на основе `.env.example`:
 
 ```env
-# URL serverless-функции контактной формы (Vercel)
 VITE_CONTACT_API_URL=https://revyakin-contact-api.vercel.app/api/contact
 ```
 
-Для прод-сборки этот URL уже зашит в `.env.production` (его подхватывает GitHub Actions).
+Для прод-сборки URL уже задан в `.env.production`.
 
 ### Контактная форма (Telegram через Vercel)
 
-⚠️ **Токен бота в браузер не кладётся.** Раньше он шёл через `VITE_`-переменную и
-попадал в публичный бандл — это утечка. Теперь форма работает через serverless-релей:
+Токен бота в браузер не попадает — форма работает через serverless-релей:
 
 ```
 браузер → POST на VITE_CONTACT_API_URL → Vercel-функция (токен в env) → Telegram
 ```
 
-Код функции — в отдельном репозитории `revyakin-contact-api`. Настройка:
+Код функции — в отдельном репозитории `revyakin-contact-api` (CORS по списку доменов, валидация,
+honeypot-поле против ботов). Настройка:
 
 1. **Создайте бота** через [@BotFather](https://t.me/BotFather), получите токен.
 2. **Узнайте chat_id** через [@userinfobot](https://t.me/userinfobot).
@@ -164,7 +186,7 @@ VITE_CONTACT_API_URL=https://revyakin-contact-api.vercel.app/api/contact
 
 ## 📄 Лицензия
 
-Этот проект распространяется под лицензией MIT.
+Этот проект распространяется под лицензией MIT — см. [LICENSE](LICENSE).
 
 ## 👨‍💻 Автор
 
