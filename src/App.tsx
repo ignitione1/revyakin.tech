@@ -6,6 +6,8 @@ import { type Lang } from "./lib/translations";
 
 function App() {
   const [lang, setLang] = useState<Lang>(() => {
+    // При пререндере (Node) localStorage нет — рендерим русскую версию
+    if (typeof window === "undefined") return 'ru';
     const saved = localStorage.getItem('lang');
     return (saved === 'ru' || saved === 'en') ? saved : 'ru';
   });
@@ -21,6 +23,11 @@ function App() {
     }
     window.ym?.(110783840, "hit", window.location.href);
   }, [location.pathname]);
+
+  // <html lang> — для браузера (автоперевод) и экранных дикторов
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const handleLangChange = (newLang: Lang) => {
     setLang(newLang);

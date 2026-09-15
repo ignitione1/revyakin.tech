@@ -1,50 +1,5 @@
-import { useRef, useEffect, useState } from "react"
+import { Reveal } from "@/components/reveal"
 import { translations, type Lang } from "@/lib/translations"
-
-function useReveal<T extends HTMLElement>() {
-  const ref = useRef<T>(null)
-  const [shown, setShown] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setShown(true); io.disconnect(); } },
-      { root: el.closest("[data-scroll-container]"), threshold: 0.2 }
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
-  return { ref, shown }
-}
-
-function Reveal({
-  children,
-  from = "left",
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode
-  from?: "left" | "right" | "up" | "down"
-  delay?: number
-  className?: string
-}) {
-  const { ref, shown } = useReveal<HTMLDivElement>()
-  const hidden = {
-    left: "-translate-x-12 opacity-0",
-    right: "translate-x-12 opacity-0",
-    up: "translate-y-12 opacity-0",
-    down: "-translate-y-12 opacity-0",
-  }[from]
-  return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ${shown ? "translate-x-0 translate-y-0 opacity-100" : hidden} ${className}`}
-    >
-      {children}
-    </div>
-  )
-}
 
 interface ServicesSectionProps {
   lang: Lang
@@ -60,7 +15,7 @@ export function ServicesSection({ lang }: ServicesSectionProps) {
   ]
 
   return (
-    <section className="flex h-screen w-screen shrink-0 items-center px-4 pt-6 md:px-12 md:pt-0 lg:px-16">
+    <section className="flex h-viewport w-screen shrink-0 items-center px-4 pt-6 md:px-12 md:pt-0 lg:px-16">
       <div className="mx-auto w-full max-w-7xl">
         <Reveal from="down" className="mb-4 mt-8 md:mb-12 md:mt-6">
           <h2 className="mb-2 text-2xl font-light tracking-tight text-foreground md:text-5xl lg:text-6xl">{t.services.title}</h2>

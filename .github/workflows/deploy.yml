@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 # Запуск только вручную — кнопкой в Actions (workflow_dispatch).
 # Сборка идёт здесь, на раннере GitHub (на VPS памяти мало), на сервер
-# заливается готовая dist/. GitHub Pages (old.html) это не трогает.
+# заливается готовая dist/.
 on:
   workflow_dispatch:
 

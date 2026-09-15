@@ -1,52 +1,8 @@
-import { useRef, useEffect, useState } from "react"
+import { useState } from "react"
 import { Mail, MapPin, Send, CheckCircle2, AlertCircle } from "lucide-react"
 import { MagneticButton } from "@/components/magnetic-button"
+import { Reveal } from "@/components/reveal"
 import { translations, type Lang } from "@/lib/translations"
-
-function useReveal<T extends HTMLElement>() {
-  const ref = useRef<T>(null)
-  const [shown, setShown] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setShown(true); io.disconnect(); } },
-      { root: el.closest("[data-scroll-container]"), threshold: 0.2 }
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
-  return { ref, shown }
-}
-
-function Reveal({
-  children,
-  from = "left",
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode
-  from?: "left" | "right" | "up" | "down"
-  delay?: number
-  className?: string
-}) {
-  const { ref, shown } = useReveal<HTMLDivElement>()
-  const hidden = {
-    left: "-translate-x-12 opacity-0",
-    right: "translate-x-12 opacity-0",
-    up: "translate-y-12 opacity-0",
-    down: "-translate-y-12 opacity-0",
-  }[from]
-  return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ${shown ? "translate-x-0 translate-y-0 opacity-100" : hidden} ${className}`}
-    >
-      {children}
-    </div>
-  )
-}
 
 interface ContactSectionProps {
   lang: Lang
@@ -96,7 +52,7 @@ export function ContactSection({ lang }: ContactSectionProps) {
   }
 
   return (
-    <section className="flex h-screen w-screen shrink-0 items-start px-4 pt-16 md:items-center md:px-12 md:pt-0 lg:px-16">
+    <section className="flex h-viewport w-screen shrink-0 items-start px-4 pt-16 md:items-center md:px-12 md:pt-0 lg:px-16">
       <div className="mx-auto w-full max-w-7xl">
         <div className="grid gap-4 md:grid-cols-[1.2fr_1fr] md:gap-12 lg:gap-20">
           <div className="flex flex-col justify-center">
@@ -108,7 +64,7 @@ export function ContactSection({ lang }: ContactSectionProps) {
             </Reveal>
             <div className="space-y-2 md:space-y-6">
               <Reveal from="left" delay={200}>
-                <a href="mailto:hello@studio.dev" className="group block">
+                <a href="mailto:ignitione1@mail.ru" className="group block">
                   <div className="mb-1 flex items-center gap-2">
                     <Mail size={10} className="text-foreground/60 md:size-4" />
                     <span className="font-mono text-[10px] text-foreground/60 md:text-xs">{t.contact.email}</span>
@@ -190,7 +146,8 @@ export function ContactSection({ lang }: ContactSectionProps) {
                 <MagneticButton
                   size="md"
                   variant="primary"
-                  className={`w-full md:size-lg ${isSubmitting ? 'opacity-50 pointer-events-none' : ''}`}
+                  type="submit"
+                  className={`w-full ${isSubmitting ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                   {isSubmitting ? (
                     <span className="flex items-center gap-2">

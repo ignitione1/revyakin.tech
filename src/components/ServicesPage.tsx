@@ -1,98 +1,33 @@
 import { useEffect } from "react";
 import { type Lang } from "@/lib/translations";
+import { FAQ, applyPageMeta, faqJsonLd, servicesMeta } from "@/lib/seo";
 
 interface ServicesPageProps {
   lang: Lang;
 }
 
 export function ServicesPage({ lang }: ServicesPageProps) {
-  // Свой title/description для /services (SPA — иначе наследуются с главной).
-  // Восстанавливаем при уходе со страницы.
+  // Свои title/description/canonical/og для /services (SPA — иначе остались бы от главной).
+  // Главная при заходе проставляет свои сама (StudioLanding), восстанавливать не нужно.
   useEffect(() => {
-    const prevTitle = document.title;
-    const metaDesc = document.querySelector('meta[name="description"]');
-    const prevDesc = metaDesc?.getAttribute("content") ?? "";
-
-    document.title =
-      lang === "ru"
-        ? "Разработка сайтов и приложений — Прокопьевск, Кузбасс, Россия | Revyakin.tech"
-        : "Web & Mobile App Development — Kuzbass, Russia | Revyakin.tech";
-    metaDesc?.setAttribute(
-      "content",
-      lang === "ru"
-        ? "Разработка сайтов, лендингов, веб- и мобильных приложений под ключ. Прокопьевск, Киселёвск, Новокузнецк, Кемерово, вся Кемеровская область и Россия — удалённо. React, Next.js, Python, Flutter."
-        : "Website, landing page, web and mobile app development. Based in Kuzbass, Russia — working remotely nationwide. React, Next.js, Python, Flutter."
-    );
-
-    return () => {
-      document.title = prevTitle;
-      if (metaDesc) metaDesc.setAttribute("content", prevDesc);
-    };
+    applyPageMeta(servicesMeta(lang));
   }, [lang]);
 
-  // FAQPage-разметка только на /services (иначе на главной SPA была бы разметка
-  // без видимого FAQ — это нарушение рекомендаций Google). Снимаем при уходе.
+  // FAQPage-разметка только на /services (на главной нет видимого FAQ — по правилам Google
+  // разметка без видимого текста запрещена). Пререндеренный services.html уже содержит
+  // такой скрипт — убираем его, чтобы не было дубля, и ставим актуальный для языка.
   useEffect(() => {
-    const faq =
-      lang === "ru"
-        ? [
-            {
-              q: "Вы работаете только по Кузбассу?",
-              a: "Нет. Я в Прокопьевске, но веду проекты удалённо по всей России. Клиенту из Новосибирска или Москвы работать со мной так же удобно, как из соседнего города Кузбасса.",
-            },
-            {
-              q: "Сколько времени занимает разработка?",
-              a: "Зависит от сложности: лендинг — 2–3 дня, корпоративный сайт — 1–2 недели, интернет-магазин или веб-приложение — 2–4 недели. MVP для стартапа можно запустить за 5–15 дней.",
-            },
-            {
-              q: "Сколько это стоит?",
-              a: "Лендинг от 5000 ₽, корпоративный сайт от 50000 ₽, интернет-магазин от 70000 ₽, веб-приложение от 80000 ₽, MVP от 10000 ₽. Точную стоимость назову после обсуждения задачи.",
-            },
-            {
-              q: "Что с поддержкой после запуска?",
-              a: "Остаюсь на связи после запуска: правки, обновления, исправление багов, консультации. Формат — почасово или по договорённости.",
-            },
-          ]
-        : [
-            {
-              q: "Do you only work in the Kemerovo region?",
-              a: "No. I'm based in Prokopyevsk but run projects remotely across Russia. Working with me from Novosibirsk or Moscow is just as convenient as from a neighboring city in Kuzbass.",
-            },
-            {
-              q: "How long does development take?",
-              a: "It depends on complexity: landing page — 2–3 days, corporate site — 1–2 weeks, online store or web app — 2–4 weeks. A startup MVP can launch in 5–15 days.",
-            },
-            {
-              q: "How much does it cost?",
-              a: "Landing from 5000 ₽, corporate site from 50000 ₽, online store from 70000 ₽, web app from 80000 ₽, MVP from 10000 ₽. I'll give an exact number after discussing the task.",
-            },
-            {
-              q: "What about support after launch?",
-              a: "I stay in touch after launch: fixes, updates, bug fixing, consultations. Hourly or by agreement.",
-            },
-          ];
-
+    document.querySelectorAll("script[data-faq]").forEach((el) => el.remove());
     const script = document.createElement("script");
     script.type = "application/ld+json";
     script.setAttribute("data-faq", "services");
-    script.textContent = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faq.map((item) => ({
-        "@type": "Question",
-        name: item.q,
-        acceptedAnswer: { "@type": "Answer", text: item.a },
-      })),
-    });
+    script.textContent = faqJsonLd(lang);
     document.head.appendChild(script);
-
-    return () => {
-      script.remove();
-    };
+    return () => script.remove();
   }, [lang]);
 
   return (
-    <div className="bg-background text-foreground px-4 py-12 md:px-8 lg:px-16 h-screen overflow-y-auto">
+    <div className="bg-background text-foreground px-4 py-12 md:px-8 lg:px-16 h-viewport overflow-y-auto">
       <div className="max-w-4xl mx-auto pb-20">
         <h1 className="text-2xl md:text-3xl font-bold mb-6">
           {lang === "ru"
@@ -100,7 +35,7 @@ export function ServicesPage({ lang }: ServicesPageProps) {
             : "Website and Mobile App Development in Kuzbass and across Russia"}
         </h1>
 
-        <div className="prose prose-invert max-w-none space-y-3 text-foreground/80 text-xs md:text-sm">
+        <div className="space-y-3 text-foreground/80 text-xs md:text-sm">
           <p className="leading-relaxed">
             {lang === "ru"
               ? "Меня зовут Виталий Ревякин, я full-stack разработчик из Прокопьевска. Делаю сайты, лендинги, веб- и мобильные приложения под ключ — от первого созвона до запуска и поддержки. Беру и небольшие лендинги, и MVP для стартапов, и системы посложнее. Работаю удалённо, поэтому географии почти нет: клиенты из Прокопьевска, Киселёвска, Новокузнецка, Кемерово, Новосибирска и других городов России общаются со мной так же, как местные — созвон, чат, демо."
@@ -148,20 +83,20 @@ export function ServicesPage({ lang }: ServicesPageProps) {
           </h2>
           <p className="leading-relaxed">
             {lang === "ru"
-              ? "Коротко о том, что уже сделано и работает — не абстрактные обещания, а живые продукты:"
-              : "A quick look at what's already built and running — not abstract promises, but live products:"}
+              ? "Коротко о том, что уже сделано — не абстрактные обещания, а реальные проекты:"
+              : "A quick look at what's already built — not abstract promises, but real projects:"}
           </p>
           <ul className="list-disc pl-6 space-y-1.5">
             <li>
               {lang === "ru" ? (
                 <>
-                  <strong>WorkHub</strong> — маркетплейс услуг (workhub.su): каталог
+                  <strong>WorkHub</strong> — маркетплейс услуг: каталог
                   исполнителей, заявки, личные кабинеты. Полноценная платформа, а не
                   просто сайт.
                 </>
               ) : (
                 <>
-                  <strong>WorkHub</strong> — a services marketplace (workhub.su):
+                  <strong>WorkHub</strong> — a services marketplace:
                   provider catalog, orders, user accounts. A full platform, not just a
                   site.
                 </>
@@ -170,28 +105,15 @@ export function ServicesPage({ lang }: ServicesPageProps) {
             <li>
               {lang === "ru" ? (
                 <>
-                  <strong>TaskFlow</strong> — система управления задачами с веб-интерфейсом
-                  и Telegram-ботом и real-time синхронизацией. Сократила время на управление
-                  задачами примерно на 40%.
+                  <strong>GreenG</strong> — сервис заказа садовых услуг для рынка США:
+                  мобильное приложение, сайт и админ-панель, заказы на карте, чат и оплата
+                  внутри сервиса. Сделан в одиночку и сдан заказчику.
                 </>
               ) : (
                 <>
-                  <strong>TaskFlow</strong> — a task manager with a web interface and a
-                  Telegram bot with real-time sync. Cut task-management time by roughly
-                  40%.
-                </>
-              )}
-            </li>
-            <li>
-              {lang === "ru" ? (
-                <>
-                  <strong>GreenG</strong> — маркетплейс садовых услуг: поиск исполнителей,
-                  заявки, удобный каталог.
-                </>
-              ) : (
-                <>
-                  <strong>GreenG</strong> — a garden-services marketplace: finding
-                  providers, orders, a convenient catalog.
+                  <strong>GreenG</strong> — an on-demand garden services platform for the US
+                  market: mobile app, website and admin panel, jobs on a map, chat and
+                  in-app payments. Built solo and delivered to the client.
                 </>
               )}
             </li>
@@ -249,47 +171,12 @@ export function ServicesPage({ lang }: ServicesPageProps) {
             {lang === "ru" ? "Частые вопросы" : "Frequently Asked Questions"}
           </h2>
 
-          <h3 className="text-base md:text-lg font-semibold text-foreground mt-4 mb-2">
-            {lang === "ru"
-              ? "Вы работаете только по Кузбассу?"
-              : "Do you only work in the Kemerovo region?"}
-          </h3>
-          <p className="leading-relaxed">
-            {lang === "ru"
-              ? "Нет. Я в Прокопьевске, но веду проекты удалённо по всей России. Клиенту из Новосибирска или Москвы работать со мной так же удобно, как из соседнего города Кузбасса."
-              : "No. I'm based in Prokopyevsk but run projects remotely across Russia. Working with me from Novosibirsk or Moscow is just as convenient as from a neighboring city in Kuzbass."}
-          </p>
-
-          <h3 className="text-base md:text-lg font-semibold text-foreground mt-4 mb-2">
-            {lang === "ru"
-              ? "Сколько времени занимает разработка?"
-              : "How long does development take?"}
-          </h3>
-          <p className="leading-relaxed">
-            {lang === "ru"
-              ? "Зависит от сложности: лендинг — 2–3 дня, корпоративный сайт — 1–2 недели, интернет-магазин или веб-приложение — 2–4 недели. MVP для стартапа можно запустить за 5–15 дней."
-              : "It depends on complexity: landing page — 2–3 days, corporate site — 1–2 weeks, online store or web app — 2–4 weeks. A startup MVP can launch in 5–15 days."}
-          </p>
-
-          <h3 className="text-base md:text-lg font-semibold text-foreground mt-4 mb-2">
-            {lang === "ru" ? "Сколько это стоит?" : "How much does it cost?"}
-          </h3>
-          <p className="leading-relaxed">
-            {lang === "ru"
-              ? "Лендинг от 5 000 ₽, корпоративный сайт от 50 000 ₽, интернет-магазин от 70 000 ₽, веб-приложение от 80 000 ₽, MVP от 10 000 ₽. Точную стоимость назову после обсуждения задачи."
-              : "Landing from 5,000 ₽, corporate site from 50,000 ₽, online store from 70,000 ₽, web app from 80,000 ₽, MVP from 10,000 ₽. I'll give an exact number after discussing the task."}
-          </p>
-
-          <h3 className="text-base md:text-lg font-semibold text-foreground mt-4 mb-2">
-            {lang === "ru"
-              ? "Что с поддержкой после запуска?"
-              : "What about support after launch?"}
-          </h3>
-          <p className="leading-relaxed">
-            {lang === "ru"
-              ? "Остаюсь на связи после запуска: правки, обновления, исправление багов, консультации. Формат — почасово или по договорённости."
-              : "I stay in touch after launch: fixes, updates, bug fixing, consultations. Hourly or by agreement."}
-          </p>
+          {FAQ[lang].map((item) => (
+            <div key={item.q}>
+              <h3 className="text-base md:text-lg font-semibold text-foreground mt-4 mb-2">{item.q}</h3>
+              <p className="leading-relaxed">{item.a}</p>
+            </div>
+          ))}
 
           <h2 className="text-lg md:text-xl font-semibold text-foreground mt-6 mb-2">
             {lang === "ru" ? "Связаться со мной" : "Get in touch"}

@@ -1,53 +1,10 @@
-import { useRef, useEffect, useState } from "react"
+import { startTransition, useEffect, useRef, useState } from "react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
-import { translations, type Lang } from "@/lib/translations"
+import { Reveal } from "@/components/reveal"
+import { translations, type Lang, type Project } from "@/lib/translations"
 
 const PER_PAGE = 3
-
-function useReveal<T extends HTMLElement>() {
-  const ref = useRef<T>(null)
-  const [shown, setShown] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setShown(true); io.disconnect(); } },
-      { root: el.closest("[data-scroll-container]"), threshold: 0.2 }
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
-  return { ref, shown }
-}
-
-function Reveal({
-  children,
-  from = "left",
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode
-  from?: "left" | "right" | "up" | "down"
-  delay?: number
-  className?: string
-}) {
-  const { ref, shown } = useReveal<HTMLDivElement>()
-  const hidden = {
-    left: "-translate-x-12 opacity-0",
-    right: "translate-x-12 opacity-0",
-    up: "translate-y-12 opacity-0",
-    down: "-translate-y-12 opacity-0",
-  }[from]
-  return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ${shown ? "translate-x-0 translate-y-0 opacity-100" : hidden} ${className}`}
-    >
-      {children}
-    </div>
-  )
-}
+const MODAL_MS = 500 // длительность выезда боковой панели (duration-500) — после неё размонтируем
 
 interface WorkSectionProps {
   onModalChange?: (isOpen: boolean) => void
@@ -57,18 +14,28 @@ interface WorkSectionProps {
 
 export function WorkSection({ onModalChange, scrollContainerRef, lang }: WorkSectionProps) {
   const t = translations[lang]
-  const [selectedProject, setSelectedProject] = useState<typeof t.work.projects[0] | null>(null)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  // Панель доехала — только тогда включаем размытие: blur во время движения поверх анимированного
+  // WebGL-фона пересчитывался каждый кадр и делал выезд дёрганым
+  const [isSettled, setIsSettled] = useState(false)
   const [page, setPage] = useState(0)
 
   const totalPages = Math.ceil(t.work.projects.length / PER_PAGE)
   const goPrev = () => setPage((p) => (p - 1 + totalPages) % totalPages)
   const goNext = () => setPage((p) => (p + 1) % totalPages)
 
-  const openModal = (project: typeof t.work.projects[0]) => {
+  const unmountTimer = useRef<number | undefined>(undefined)
+
+  // Модалка монтируется закрытой (selectedProject) и открывается на следующем кадре
+  // (isModalOpen) — иначе CSS-переходам не из чего переходить и фон появляется рывком.
+  // Родителю сообщаем через startTransition: перерисовка всей главной не должна
+  // занимать первые кадры анимации.
+  const openModal = (project: Project) => {
+    window.clearTimeout(unmountTimer.current)
     setSelectedProject(project)
-    setIsModalOpen(true)
-    onModalChange?.(true)
+    requestAnimationFrame(() => requestAnimationFrame(() => setIsModalOpen(true)))
+    startTransition(() => onModalChange?.(true))
     if (scrollContainerRef?.current) {
       scrollContainerRef.current.style.overflow = 'hidden'
     }
@@ -76,14 +43,29 @@ export function WorkSection({ onModalChange, scrollContainerRef, lang }: WorkSec
 
   const closeModal = () => {
     setIsModalOpen(false)
-    onModalChange?.(false)
+    setIsSettled(false)
+    startTransition(() => onModalChange?.(false))
     if (scrollContainerRef?.current) {
       scrollContainerRef.current.style.overflow = ''
     }
-    setTimeout(() => setSelectedProject(null), 500)
+    // Размонтируем после перехода
+    unmountTimer.current = window.setTimeout(() => setSelectedProject(null), MODAL_MS)
   }
 
-  const projects = t.work.projects
+  useEffect(() => () => window.clearTimeout(unmountTimer.current), [])
+
+  // Esc закрывает модалку
+  useEffect(() => {
+    if (!isModalOpen) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeModal()
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isModalOpen])
+
+  const projects = (t.work.projects as Project[])
     .slice(page * PER_PAGE, page * PER_PAGE + PER_PAGE)
     .map((p, i) => {
       const globalIndex = page * PER_PAGE + i
@@ -96,7 +78,7 @@ export function WorkSection({ onModalChange, scrollContainerRef, lang }: WorkSec
     })
 
   return (
-    <section className="flex h-screen w-screen shrink-0 items-center px-4 pt-6 md:px-12 md:pt-0 lg:px-16">
+    <section className="flex h-viewport w-screen shrink-0 items-center px-4 pt-6 md:px-12 md:pt-0 lg:px-16">
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-4 mt-12 flex flex-col gap-3 md:mb-10 md:mt-20 md:flex-row md:items-end md:justify-between">
           <Reveal from="left">
@@ -104,7 +86,7 @@ export function WorkSection({ onModalChange, scrollContainerRef, lang }: WorkSec
             <p className="font-mono text-[10px] text-foreground/60 md:text-sm">{t.work.subtitle}</p>
           </Reveal>
           {totalPages > 1 && (
-            <div className="flex items-center gap-1 self-start rounded-full border border-foreground/20 bg-foreground/10 p-1 backdrop-blur-md md:self-auto">
+            <div className="flex items-center gap-1 self-start rounded-full border border-foreground/20 bg-foreground/15 p-1 md:self-auto">
               <button
                 type="button"
                 onClick={goPrev}
@@ -161,24 +143,24 @@ export function WorkSection({ onModalChange, scrollContainerRef, lang }: WorkSec
           ))}
         </div>
 
-        {/* Modal */}
+        {/* Модалка проекта — боковая панель справа */}
         {selectedProject && (
           <div
-            className={`fixed inset-0 z-[100] flex items-center justify-center pt-16 px-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isModalOpen ? 'opacity-100' : 'opacity-0'}`}
+            className={`fixed inset-0 z-[100] flex bg-black/60 transition-opacity ease-out motion-reduce:transition-none justify-end duration-500 ${isModalOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
             onClick={closeModal}
           >
             <div
-              className={`relative max-w-4xl max-h-[85vh] w-full rounded-2xl bg-foreground/5 border border-foreground/10 p-4 shadow-2xl overflow-y-auto modal-scroll md:p-7`}
-              style={{
-                animation: isModalOpen
-                  ? "modalSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards"
-                  : "modalSlideOut 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards"
+              className={`relative w-full border-foreground/10 shadow-2xl overflow-y-auto modal-scroll h-full max-w-2xl rounded-l-2xl border-l px-5 pb-8 pt-20 md:px-10 transition-[translate,backdrop-filter,background-color] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${isModalOpen ? 'translate-x-0' : 'translate-x-full'} ${isSettled ? 'bg-black/50 backdrop-blur-xl' : 'bg-black/65'}`}
+              onTransitionEnd={(e) => {
+                if (e.target === e.currentTarget && isModalOpen) setIsSettled(true)
               }}
               onClick={(e) => e.stopPropagation()}
               onWheel={(e) => e.stopPropagation()}
             >
               <button
+                type="button"
                 onClick={closeModal}
+                aria-label={lang === "ru" ? "Закрыть" : "Close"}
                 className="absolute right-3 top-3 text-foreground/50 transition-colors hover:text-foreground md:right-4 md:top-4"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

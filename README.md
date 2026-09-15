@@ -57,16 +57,15 @@ portfolio/
 ## 🛠️ Установка и запуск
 
 ### Требования
-- Node.js 18+
+- Node.js 20.19+ (требование Vite 7)
 - npm или yarn
-- Docker (опционально)
 
 ### Локальная разработка
 
 1. **Клонирование репозитория**
 ```bash
-git clone https://github.com/ignitione1/ignitione1.github.io.git
-cd portfolio
+git clone https://github.com/ignitione1/revyakin.tech.git
+cd revyakin.tech
 ```
 
 2. **Установка зависимостей**

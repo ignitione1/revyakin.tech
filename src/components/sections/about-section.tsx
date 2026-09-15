@@ -1,51 +1,6 @@
-import { useRef, useEffect, useState } from "react"
 import { MagneticButton } from "@/components/magnetic-button"
+import { Reveal } from "@/components/reveal"
 import { translations, type Lang } from "@/lib/translations"
-
-function useReveal<T extends HTMLElement>() {
-  const ref = useRef<T>(null)
-  const [shown, setShown] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const io = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setShown(true); io.disconnect(); } },
-      { root: el.closest("[data-scroll-container]"), threshold: 0.2 }
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
-  return { ref, shown }
-}
-
-function Reveal({
-  children,
-  from = "left",
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode
-  from?: "left" | "right" | "up" | "down"
-  delay?: number
-  className?: string
-}) {
-  const { ref, shown } = useReveal<HTMLDivElement>()
-  const hidden = {
-    left: "-translate-x-12 opacity-0",
-    right: "translate-x-12 opacity-0",
-    up: "translate-y-12 opacity-0",
-    down: "-translate-y-12 opacity-0",
-  }[from]
-  return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={`transition-all duration-700 ${shown ? "translate-x-0 translate-y-0 opacity-100" : hidden} ${className}`}
-    >
-      {children}
-    </div>
-  )
-}
 
 interface AboutSectionProps {
   scrollToSection: (index: number) => void
@@ -61,7 +16,7 @@ export function AboutSection({ scrollToSection, lang }: AboutSectionProps) {
   ]
 
   return (
-    <section className="flex h-screen w-screen shrink-0 items-center px-4 pt-6 md:px-12 md:pt-0 lg:px-16">
+    <section className="flex h-viewport w-screen shrink-0 items-center px-4 pt-6 md:px-12 md:pt-0 lg:px-16">
       <div className="mx-auto w-full max-w-7xl">
         <div className="grid gap-4 md:grid-cols-2 md:gap-12 lg:gap-20">
           <div>
@@ -102,8 +57,8 @@ export function AboutSection({ scrollToSection, lang }: AboutSectionProps) {
           </div>
         </div>
         <Reveal from="up" delay={750} className="mt-4 flex flex-wrap gap-2 md:mt-12 md:gap-3">
-          <MagneticButton size="md" variant="primary" onClick={() => scrollToSection(4)} className="md:size-lg">{t.about.ctaProject}</MagneticButton>
-          <MagneticButton size="md" variant="secondary" onClick={() => scrollToSection(1)} className="md:size-lg">{t.about.ctaWork}</MagneticButton>
+          <MagneticButton size="md" variant="primary" onClick={() => scrollToSection(4)}>{t.about.ctaProject}</MagneticButton>
+          <MagneticButton size="md" variant="secondary" onClick={() => scrollToSection(1)}>{t.about.ctaWork}</MagneticButton>
         </Reveal>
       </div>
     </section>

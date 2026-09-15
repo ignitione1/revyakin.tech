@@ -1,4 +1,11 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+
+// Свой курсор — только при мыши с точным наведением. Проверка «есть ли тач» ошибалась:
+// ноутбуки с тачскрином, эмуляция в DevTools, планшет с мышью. Медиазапрос отслеживаем
+// вживую — курсор включается/выключается без перезагрузки.
+// При пререндере (Node) window нет — курсор не рендерится.
+const FINE_POINTER = "(hover: hover) and (pointer: fine)"
+const hasFinePointer = () => typeof window !== "undefined" && window.matchMedia(FINE_POINTER).matches
 
 export function CustomCursor() {
   const outerRef = useRef<HTMLDivElement>(null)
@@ -6,59 +13,92 @@ export function CustomCursor() {
   const positionRef = useRef({ x: 0, y: 0 })
   const targetPositionRef = useRef({ x: 0, y: 0 })
   const isPointerRef = useRef(false)
+  const [enabled, setEnabled] = useState(hasFinePointer)
 
   useEffect(() => {
-    // Проверяем, является ли устройство touch-устройством
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
-    if (isTouchDevice) return
+    const mql = window.matchMedia(FINE_POINTER)
+    const onChange = () => setEnabled(mql.matches)
+    mql.addEventListener("change", onChange)
+    return () => mql.removeEventListener("change", onChange)
+  }, [])
 
-    let animationFrameId: number
+  useEffect(() => {
+    if (!enabled) return
+
+    // Системный курсор прячем только пока смонтирован свой (см. .custom-cursor в styles.css)
+    document.documentElement.classList.add("custom-cursor")
+
+    let animationFrameId: number | undefined
+    let hasMoved = false
 
     const lerp = (start: number, end: number, factor: number) =>
       start + (end - start) * factor
 
+    const render = () => {
+      if (!outerRef.current || !innerRef.current) return
+      const { x, y } = positionRef.current
+      const scale = isPointerRef.current ? 1.5 : 1       // внешний — увеличивается на кнопках
+      const innerScale = isPointerRef.current ? 0.5 : 1  // внутренний — уменьшается
+      outerRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`
+      innerRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${innerScale})`
+    }
+
     const updateCursor = () => {
       // инерционное следование через linear interpolation (factor 0.15)
-      positionRef.current.x = lerp(positionRef.current.x, targetPositionRef.current.x, 0.15)
-      positionRef.current.y = lerp(positionRef.current.y, targetPositionRef.current.y, 0.15)
+      const pos = positionRef.current
+      const target = targetPositionRef.current
+      pos.x = lerp(pos.x, target.x, 0.15)
+      pos.y = lerp(pos.y, target.y, 0.15)
 
-      if (outerRef.current && innerRef.current) {
-        const scale = isPointerRef.current ? 1.5 : 1       // внешний — увеличивается на кнопках
-        const innerScale = isPointerRef.current ? 0.5 : 1  // внутренний — уменьшается
-
-        outerRef.current.style.transform = `translate3d(${positionRef.current.x}px, ${positionRef.current.y}px, 0) translate(-50%, -50%) scale(${scale})`
-        innerRef.current.style.transform = `translate3d(${positionRef.current.x}px, ${positionRef.current.y}px, 0) translate(-50%, -50%) scale(${innerScale})`
+      // Догнали мышь — останавливаем цикл до следующего движения
+      if (Math.abs(target.x - pos.x) < 0.1 && Math.abs(target.y - pos.y) < 0.1) {
+        pos.x = target.x
+        pos.y = target.y
+        animationFrameId = undefined
+      } else {
+        animationFrameId = requestAnimationFrame(updateCursor)
       }
-      animationFrameId = requestAnimationFrame(updateCursor)
+      render()
     }
 
     const handleMouseMove = (e: MouseEvent) => {
       targetPositionRef.current = { x: e.clientX, y: e.clientY }
-      const target = e.target as HTMLElement
-      isPointerRef.current =
-        window.getComputedStyle(target).cursor === "pointer" ||
-        target.tagName === "BUTTON" ||
-        target.tagName === "A"
+      // closest() без пересчёта стилей и находит кнопку, даже если мышь над <span> внутри неё
+      isPointerRef.current = !!(e.target as Element).closest?.(
+        "a, button, [role=button], input, textarea, select, label"
+      )
+
+      if (!hasMoved) {
+        // Первое движение: ставим курсор сразу под мышь (без «прилёта» из угла) и показываем
+        hasMoved = true
+        positionRef.current = { x: e.clientX, y: e.clientY }
+        outerRef.current?.style.removeProperty("opacity")
+        innerRef.current?.style.removeProperty("opacity")
+      }
+
+      if (animationFrameId === undefined) animationFrameId = requestAnimationFrame(updateCursor)
     }
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true })
-    animationFrameId = requestAnimationFrame(updateCursor)
     return () => {
       window.removeEventListener("mousemove", handleMouseMove)
-      cancelAnimationFrame(animationFrameId)
+      if (animationFrameId !== undefined) cancelAnimationFrame(animationFrameId)
+      document.documentElement.classList.remove("custom-cursor")
     }
-  }, [])
+  }, [enabled])
+
+  if (!enabled) return null
 
   return (
     <>
       {/* внешнее кольцо */}
-      <div ref={outerRef} className="pointer-events-none fixed left-0 top-0 z-50 hidden mix-blend-difference will-change-transform md:block"
-        style={{ contain: "layout style paint" }}>
+      <div ref={outerRef} className="custom-cursor-el pointer-events-none fixed left-0 top-0 z-50 mix-blend-difference will-change-transform"
+        style={{ contain: "layout style paint", opacity: 0 }}>
         <div className="h-4 w-4 rounded-full border-2 border-white" />
       </div>
       {/* внутренняя точка */}
-      <div ref={innerRef} className="pointer-events-none fixed left-0 top-0 z-50 hidden mix-blend-difference will-change-transform md:block"
-        style={{ contain: "layout style paint" }}>
+      <div ref={innerRef} className="custom-cursor-el pointer-events-none fixed left-0 top-0 z-50 mix-blend-difference will-change-transform"
+        style={{ contain: "layout style paint", opacity: 0 }}>
         <div className="h-2 w-2 rounded-full bg-white" />
       </div>
     </>
